@@ -12,6 +12,7 @@ sub _dir {
 
 sub filters {{
     'php'   => qr/\bphp\b/i,
+    'python' => qr/\bpython\b/i,
     'perl'  => qr/\bperl\b/i,
     'java'  => qr/\bjava\b/i,
     'go'    => qr/\b(golang|go-lang)\b/i,
