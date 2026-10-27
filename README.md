@@ -4,7 +4,9 @@ CVE is a Developer Dashboard skill that watches recent vulnerability reports
 for critical issues mentioning C/C++, Java, Go, Perl or PHP. It stores matching
 records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
 vulnerability feed and, by default, keeps reports with a CVSS score of at least
-9.0 that were published within the last 24 hours.
+5.0 that were published within the last 24 hours.
+
+Current version: `1.0.1`.
 
 ## Requirements
 
