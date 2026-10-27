@@ -9,7 +9,6 @@ vulnerability feed and, by default, keeps reports with a CVSS score of at least
 ## Requirements
 
 - Developer Dashboard (`d2`), available from the [Developer Dashboard page](https://michael.vu/?tag=Developer%20Dashboard)
-- Perl and the modules used by the collector: `HTTP::Tiny`, `JSON`, `Time::Piece`, `File::Path` and `Env`
 
 ## Install
 
@@ -25,6 +24,7 @@ Start the research collector:
 
 ```sh
 d2 restart collector cve.research
+d2 collector run cve.research
 ```
 
 It is configured to run hourly. To view the stored critical report count,
@@ -32,6 +32,7 @@ start the count collector:
 
 ```sh
 d2 restart collector cve.count
+d2 collector run cve.count
 ```
 
 The count collector is configured to run every 30 minutes. Its indicator is
