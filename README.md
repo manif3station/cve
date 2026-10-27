@@ -1,12 +1,12 @@
 # CVE
 
 CVE is a Developer Dashboard skill that watches recent vulnerability reports
-for critical issues mentioning C/C++, Java, Go, Perl or PHP. It stores matching
-records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
+for critical issues mentioning C/C++, Java, Go, Perl, PHP or Python. It stores
+matching records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
 vulnerability feed and, by default, keeps reports with a CVSS score of at least
 5.0 that were published within the last 24 hours.
 
-Current version: `1.0.1`.
+Current version: `1.0.2`.
 
 ## Requirements
 
@@ -39,7 +39,8 @@ d2 collector run cve.count
 
 The count collector is configured to run every 30 minutes. Its indicator is
 shown in the Developer Dashboard. Reports are stored under language-specific
-directories in `~/.cve/`, including `cc`, `java`, `go`, `perl` and `php`.
+directories in `~/.cve/`, including `cc`, `java`, `go`, `perl`, `php` and
+`python`.
 
 ## Configuration
 
