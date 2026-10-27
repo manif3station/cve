@@ -35,7 +35,8 @@ CVE::Count - count saved CVE reports
 =head1 DESCRIPTION
 
 Counts JSON report files in the language directories returned by
-C<CVE::Folder> and writes the count as a JSON object. The C<directories>
-and C<out> options can be supplied to C<run> for testing.
+C<CVE::Folder> and writes the count as a JSON object. If C<CVE_TARGET> is set,
+only the selected language directories are counted. The C<directories> and
+C<out> options can be supplied to C<run> for testing.
 
 =cut

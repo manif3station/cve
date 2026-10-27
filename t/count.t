@@ -18,15 +18,44 @@ close $text;
 mkdir "$php/fake.json" or die $!;
 
 local $ENV{HOME} = $home;
+local $ENV{CVE_TARGET} = undef;
+my $rust = "$home/.cve/rust";
+make_path($rust);
+open my $rust_json, '>', "$rust/GHSA-RUST.json" or die $!;
+print {$rust_json} '{}';
+close $rust_json;
+
 my $module_output = '';
 open my $module_out, '>', \$module_output or die $!;
 is(CVE::Count->run(out => $module_out), 0, 'count module succeeds');
 close $module_out;
-is($module_output, '{"count":1}', 'count module reports saved JSON files');
+is($module_output, '{"count":2}', 'count module reports saved JSON files');
+
+{
+    local $ENV{CVE_TARGET} = ' PHP ';
+    my $target_output = '';
+    open my $target_out, '>', \$target_output or die $!;
+    is(CVE::Count->run(out => $target_out), 0,
+        'count module succeeds with a configured target');
+    close $target_out;
+    is($target_output, '{"count":1}',
+        'count module counts only selected language directories');
+}
+
+{
+    local $ENV{CVE_TARGET} = ' PHP, Rust ';
+    my $target_output = '';
+    open my $target_out, '>', \$target_output or die $!;
+    is(CVE::Count->run(out => $target_out), 0,
+        'count module accepts multiple selected targets');
+    close $target_out;
+    is($target_output, '{"count":2}',
+        'count module counts all selected target directories');
+}
 
 my $output = `$^X -Ilib cli/count.pl`;
 is($? >> 8, 0, 'count command exits successfully');
-is($output, '{"count":1}', 'counts JSON reports and ignores other files');
+is($output, '{"count":2}', 'counts JSON reports and ignores other files');
 
 my $empty_output = '';
 open my $empty_out, '>', \$empty_output or die $!;

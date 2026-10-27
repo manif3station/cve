@@ -8,6 +8,7 @@ use CVE::Folder;
 
 my $home = tempdir(CLEANUP => 1);
 local $ENV{HOME} = $home;
+local $ENV{CVE_TARGET} = undef;
 
 my $base = CVE::Folder->base;
 ok(-d $base, 'base directory is created');
@@ -46,6 +47,32 @@ is($directories->{cc}, "$home/.cve/c/c++",
     'stores C and C++ reports in the documented directory');
 for my $language (keys %examples) {
     ok(-d $directories->{$language}, "$language directory is created");
+}
+
+is_deeply(CVE::Folder->targets(' PHP '), ['php'],
+    'parses a single target and trims surrounding whitespace');
+is_deeply(CVE::Folder->targets('php,,rust'), ['php', 'rust'],
+    'ignores empty CSV entries');
+is_deeply(CVE::Folder->targets(' rUsT, GO '), ['go', 'rust'],
+    'parses multiple case-insensitive targets and trims each value');
+is_deeply(CVE::Folder->targets('Rust, rust, Cargo'), ['rust'],
+    'canonicalises aliases and removes duplicate targets');
+is_deeply(CVE::Folder->targets('C/C++'), ['cc'],
+    'accepts the documented C and C++ target name');
+is_deeply(CVE::Folder->targets(' CPAN '), ['perl'],
+    'accepts CPAN as an alias for Perl');
+is_deeply(CVE::Folder->targets('  '), [sort keys %examples],
+    'treats a blank target setting as all supported languages');
+eval { CVE::Folder->targets('php,unknown'); };
+like($@, qr/Unsupported CVE_TARGET value\(s\): unknown/,
+    'rejects unsupported target names');
+
+{
+    local $ENV{CVE_TARGET} = ' php, RuSt ';
+    is_deeply([sort keys %{ CVE::Folder->list }], [qw(php rust)],
+        'limits storage directories to configured targets');
+    is_deeply([sort keys %{ CVE::Folder->target_filters }], [qw(php rust)],
+        'limits research filters to configured targets');
 }
 
 done_testing;

@@ -8,6 +8,8 @@ use lib 'lib';
 use CVE::Research;
 use CVE::Folder;
 
+local $ENV{CVE_TARGET} = undef;
+
 for my $help_arg ('--help', '-h', '/?') {
     my $help = `$^X -Ilib cli/__init__.pl $help_arg`;
     is($? >> 8, 0, "research command accepts $help_arg");
@@ -149,6 +151,22 @@ is(CVE::Research::_identify_language({}, 'Rust crate vulnerability', $filters),
 is(CVE::Research::_identify_language({}, 'rustc has an out of bounds access', $filters),
     'rust', 'identifies Rust compiler advisories');
 is(CVE::Research::_identify_language(
+    { containers => { cna => { affected => [{
+        packageName => 'Text-CSV_XS', packageURL => 'pkg:cpan/Text-CSV_XS',
+    }] } } },
+    'Text::CSV_XS vulnerability', $filters,
+), 'perl', 'identifies CPAN advisories from CNA packageURL metadata');
+is(CVE::Research::_identify_language(
+    { containers => { cna => { affected => [{
+        packageName => 'Example', purl => 'pkg:cpan/Example',
+    }] } } },
+    'module vulnerability', $filters,
+), 'perl', 'recognises a CNA affected-product purl');
+is(CVE::Research::_identify_language(
+    { affected => [{ packageUrl => 'pkg:cpan/Example' }] },
+    'module vulnerability', $filters,
+), 'perl', 'recognises a lower-case packageUrl field');
+is(CVE::Research::_identify_language(
     { containers => { cna => { affected => [{ vendor => 'python-pillow', product => 'Pillow' }] } } },
     'image library issue', $filters,
 ), 'python', 'identifies Python from CVE affected vendor metadata');
@@ -269,6 +287,48 @@ ok(!-f "$home/.cve/python/CVE-2026-96636.json",
     'does not persist medium severity reports');
 is(decode_json(do { local $/; open my $fh, '<', "$home/.cve/python/CVE-NEW.json" or die $!; <$fh> })->{id},
     'CVE-NEW', 'stores the original JSON record');
+
+{
+    my $target_home = "$home/target-home";
+    make_path($target_home);
+    local $ENV{HOME} = $target_home;
+    local $ENV{CVE_TARGET} = ' Rust , gO, RUST, Perl ';
+    my $target_items = [
+        { id => 'TARGET-GO', summary => 'Go module vulnerability', cvss => 8.0,
+          published => '2026-10-27T14:00:00Z' },
+        { id => 'TARGET-RUST', summary => 'Rust crate vulnerability', cvss => 9.0,
+          affected => [{ package => { ecosystem => 'crates.io', name => 'example' } }],
+          published => '2026-10-27T14:00:00Z' },
+        { cveMetadata => { cveId => 'CVE-CPAN-TARGET',
+            dateUpdated => '2026-10-27T14:00:00Z' },
+          containers => { cna => {
+              affected => [{ packageName => 'Text-CSV_XS',
+                  packageURL => 'pkg:cpan/Text-CSV_XS' }],
+              descriptions => [{ value => 'Text::CSV_XS module vulnerability' }],
+              metrics => [{ cvssV3_1 => { baseScore => 8.0 } }],
+          } } },
+        { id => 'TARGET-PHP', summary => 'PHP application vulnerability', cvss => 9.0,
+          published => '2026-10-27T14:00:00Z' },
+    ];
+    my $target_output = '';
+    open my $target_out, '>', \$target_output or die $!;
+    is(CVE::Research->run(
+        now => $now,
+        fetch => sub { return { success => 1, content => encode_json($target_items) } },
+        out => $target_out,
+    ), 1, 'research collector reports matching selected-language entries');
+    close $target_out;
+    like($target_output, qr/TARGET-GO/, 'research includes a selected Go target');
+    like($target_output, qr/TARGET-RUST/, 'research includes a selected Rust target');
+    like($target_output, qr/CVE-CPAN-TARGET/,
+        'research includes selected CPAN Perl advisories');
+    unlike($target_output, qr/TARGET-PHP/, 'research excludes languages outside CVE_TARGET');
+    ok(-f "$target_home/.cve/go/TARGET-GO.json", 'stores selected Go reports');
+    ok(-f "$target_home/.cve/rust/TARGET-RUST.json", 'stores selected Rust reports');
+    ok(-f "$target_home/.cve/perl/CVE-CPAN-TARGET.json",
+        'stores selected Perl advisories from CPAN packageURL metadata');
+    ok(!-e "$target_home/.cve/php/TARGET-PHP.json", 'does not store unselected reports');
+}
 
 my $empty_output = '';
 open my $empty_out, '>', \$empty_output or die $!;
@@ -401,6 +461,9 @@ is(CVE::Research::_raw_event_time({ document => { tracking => {
 is(CVE::Research::_raw_event_time({ document => { tracking => {
     initial_release_date => '2026-10-27T13:00:00Z' } } }), '2026-10-27T13:00:00Z',
     'uses a CSAF initial release date when no current date exists');
+is(CVE::Research::_raw_event_time({ cveMetadata => { datePublished => undef },
+    document => { tracking => { initial_release_date => '2026-10-27T12:00:00Z' } } }),
+    '2026-10-27T12:00:00Z', 'uses the final timestamp fallback');
 is(CVE::Research::_raw_event_time({}), undef,
     'returns no event time when the record has no timestamps');
 is(CVE::Research::_normalise_records([{ vulnerabilities => [] }])->[0]{vulnerabilities}[0], undef,
@@ -408,6 +471,8 @@ is(CVE::Research::_normalise_records([{ vulnerabilities => [] }])->[0]{vulnerabi
 is(scalar @{ CVE::Research::_normalise_records([{ document => {}, vulnerabilities => [
     'bad', { ids => ['bad', {}, { text => 'GHSA-not-cve' }] },
 ] }]) }, 1, 'skips malformed vulnerabilities and creates a fallback CSAF ID');
+is(CVE::Research::_normalise_records([{ document => {}, vulnerabilities => [{}] }])->[0]{id},
+    'UNKNOWN-CSAF-1', 'uses an unknown CSAF ID when the advisory has no tracking ID');
 is(CVE::Research::_csaf_score({ scores => [ 'bad',
     { cvss_v4 => { baseScore => 'unknown', vectorString => '' } },
 ] }), undef, 'ignores malformed CSAF scores and empty vectors');

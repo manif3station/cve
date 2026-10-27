@@ -24,10 +24,12 @@ sub run {
         ? $options{window}
         : defined $SECONDS_IN_24H ? $SECONDS_IN_24H : 24 * 60 * 60;
     my $fetch = $options{fetch};
-    $fetch //= sub { HTTP::Tiny->new->get(shift) };
+    if ( !defined $fetch ) {
+        $fetch = sub { HTTP::Tiny->new->get(shift) };
+    }
     my $max_pages = $options{max_pages} // 5;
     my $since = gmtime( $current_time - $window )->strftime('%Y-%m-%d');
-    my %tech_filters = CVE::Folder->filters->%*;
+    my %tech_filters = CVE::Folder->target_filters->%*;
 
     $| = 1;
     print {$out} "[*] ["
@@ -184,13 +186,18 @@ sub run {
 
 sub _raw_event_time {
     my ($item) = @_;
-    return $item->{modified}
-        // $item->{cveMetadata}{dateUpdated}
-        // $item->{Published}
-        // $item->{published}
-        // $item->{cveMetadata}{datePublished}
-        // $item->{document}{tracking}{current_release_date}
-        // $item->{document}{tracking}{initial_release_date};
+    for my $candidate (
+        $item->{modified},
+        $item->{cveMetadata}{dateUpdated},
+        $item->{Published},
+        $item->{published},
+        $item->{cveMetadata}{datePublished},
+        $item->{document}{tracking}{current_release_date},
+        $item->{document}{tracking}{initial_release_date},
+    ) {
+        return $candidate if defined $candidate;
+    }
+    return;
 }
 
 sub _normalise_records {
@@ -210,9 +217,14 @@ sub _normalise_records {
                         grep { ref $_ eq 'HASH' && ($_->{text} // '') =~ /^CVE-/ }
                         @{ $vulnerability->{ids} };
                 }
-                $id //= $tracking->{id}
-                    ? sprintf( '%s-%03d', $tracking->{id}, $index )
-                    : "UNKNOWN-CSAF-$index";
+                if (!defined $id) {
+                    if ($tracking->{id}) {
+                        $id = sprintf( '%s-%03d', $tracking->{id}, $index );
+                    }
+                    else {
+                        $id = "UNKNOWN-CSAF-$index";
+                    }
+                }
 
                 my $summary = _csaf_summary( $vulnerability, $item->{document} );
                 my $score = _csaf_score($vulnerability);
@@ -326,7 +338,8 @@ sub _identify_language {
         next unless ref $entry eq 'HASH';
         my $package = ref $entry->{package} eq 'HASH' ? $entry->{package} : {};
         my $ecosystem = lc( $package->{ecosystem} // $entry->{ecosystem} // '' );
-        my $purl = lc( $package->{purl} // '' );
+        my $purl = lc( $package->{purl} // $entry->{purl}
+            // $entry->{packageURL} // $entry->{packageUrl} // '' );
         my $structured_language = _ecosystem_language($ecosystem)
             // _purl_language($purl);
         return $structured_language if $structured_language;
@@ -338,7 +351,8 @@ sub _identify_language {
         my $package = ref $entry->{package} eq 'HASH' ? $entry->{package} : {};
         push @text, map { defined $_ && !ref $_ ? $_ : () }
             ( $package->{name}, $package->{ecosystem}, $package->{purl},
-              $entry->{vendor}, $entry->{product}, $entry->{packageName} );
+              $entry->{vendor}, $entry->{product}, $entry->{packageName},
+              $entry->{purl}, $entry->{packageURL}, $entry->{packageUrl} );
     }
     my $match_text = join ' ', @text;
     for my $language ( sort keys %$filters ) {
@@ -454,15 +468,17 @@ CVE::Research - collect and triage recent vulnerability reports
 
 Fetches recently updated vulnerability reports from the paginated CIRCL
 vulnerability feed. Supported languages are C/C++, Java, Go, Perl, PHP, Python
-and Rust. Detection uses OSV ecosystems, package URLs, affected product
-metadata and descriptions. The collector stores only HIGH or CRITICAL reports
-with a supported CVSS score of
+and Rust. Detection uses OSV ecosystems, package URLs (including CPAN
+C<pkg:cpan/> metadata), affected product metadata and descriptions. The
+collector stores only HIGH or CRITICAL reports with a supported CVSS score of
 at least 7.0 that fall within the 24-hour window. Numeric CVSS base scores are
 used when present; CVSS 3.0 and 3.1 vectors are scored when a numeric base
 score is absent. Unsupported vectors and missing scores are skipped. Reports
 are stored in the corresponding C<~/.cve/> language directory. The collector
 requests up to five pages of 100 records per run and warns when the page limit
-is reached. The default threshold and window are set by
+is reached. If C<CVE_TARGET> is set, matching and storage are limited to its
+comma-separated, case-insensitive language names; otherwise all supported
+languages are enabled. The default threshold and window are set by
 C<CVSS_SEVERITY_THRESHOLD> and C<SECONDS_IN_24H>. The C<run> method accepts
 optional C<fetch>, C<now>, C<threshold>, C<window>, C<max_pages>, C<out> and
 C<err> values to support deterministic testing.
