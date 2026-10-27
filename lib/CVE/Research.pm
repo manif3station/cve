@@ -19,7 +19,7 @@ sub run {
     my $current_time = defined $options{now} ? $options{now} : time;
     my $threshold = defined $options{threshold}
         ? $options{threshold}
-        : defined $CVSS_SEVERITY_THRESHOLD ? $CVSS_SEVERITY_THRESHOLD : 5.0;
+        : defined $CVSS_SEVERITY_THRESHOLD ? $CVSS_SEVERITY_THRESHOLD : 7.0;
     my $window = defined $options{window}
         ? $options{window}
         : defined $SECONDS_IN_24H ? $SECONDS_IN_24H : 24 * 60 * 60;

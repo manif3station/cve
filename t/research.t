@@ -223,7 +223,7 @@ my $output = '';
 open my $out, '>', \$output or die $!;
 my $status = CVE::Research->run(
     now => $now,
-    threshold => 5,
+    threshold => 7,
     window => 24 * 60 * 60,
     fetch => sub {
         $captured_url = shift;
@@ -243,14 +243,18 @@ like($output, qr/CVE-SEVERITY/, 'accepts a severity score');
 like($output, qr/UNKNOWN-CVE/, 'uses a fallback identifier when no CVE ID exists');
 like($output, qr/\[CRITICAL\].*GHSA-PYTHON/s,
     'scores OSV vectors and reports their severity level');
-like($output, qr/\[MEDIUM\s*\].*\[PYTHON\s*\].*CVE-2026-96636/s,
-    'uses CVE affected metadata, numeric CVSS metrics and update time');
+like($output, qr/\[HIGH\s*\].*CVE-METRIC/s,
+    'includes high severity reports at the configured cutoff');
+like($output, qr/CVE-2026-96636.*MEDIUM severity \(CVSS: 6.5\) is below threshold \(7.0\)/s,
+    'filters medium CVE records below the high severity cutoff');
 like($output, qr/\[CRITICAL\s*\].*\[PHP\s*\].*CVE-2026-92885/s,
     'identifies and scores a real WordPress plugin CVE payload');
 like($output, qr/No supported numeric CVSS base score/, 'skips records without a usable score');
 like($output, qr/FUTURE.*future/s, 'rejects update times later than the current time');
 like($output, qr/Last updated .*exceeds maximum/, 'uses update time for feed recency');
 ok(-f "$home/.cve/python/CVE-NEW.json", 'persists the new report in its language folder');
+ok(!-f "$home/.cve/python/CVE-2026-96636.json",
+    'does not persist medium severity reports');
 is(decode_json(do { local $/; open my $fh, '<', "$home/.cve/python/CVE-NEW.json" or die $!; <$fh> })->{id},
     'CVE-NEW', 'stores the original JSON record');
 
@@ -258,7 +262,7 @@ my $empty_output = '';
 open my $empty_out, '>', \$empty_output or die $!;
 is(CVE::Research->run(
     now => $now,
-    threshold => 5,
+    threshold => 7,
     fetch => sub { return { success => 1, content => '[]' } },
     out => $empty_out,
 ), 0, 'returns success when there are no matching reports');
@@ -292,7 +296,7 @@ my $write_error = '';
         published => '2026-10-27T11:00:00Z' }];
     is(CVE::Research->run(
         now => $now,
-        threshold => 5,
+        threshold => 7,
         fetch => sub { return { success => 1, content => encode_json($error_items) } },
         out => $write_out,
     ), 1, 'returns alert status after a failed record write');
@@ -308,7 +312,7 @@ my $broken_item = [{ id => 'BROKEN2/RECORD', summary => 'PHP flaw', cvss => 7,
     published => '2026-10-27T11:00:00Z' }];
 is(CVE::Research->run(
     now => $now,
-    threshold => 5,
+    threshold => 7,
     fetch => sub { return { success => 1, content => encode_json($broken_item) } },
     out => $explicit_out,
     err => $explicit_err,
@@ -430,7 +434,7 @@ my $page_output = '';
 open my $page_out, '>', \$page_output or die $!;
 is(CVE::Research->run(
     now => $now,
-    threshold => 5,
+    threshold => 7,
     window => 24 * 60 * 60,
     out => $page_out,
     fetch => sub {

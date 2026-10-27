@@ -3,9 +3,10 @@
 CVE is a Developer Dashboard skill that watches recent vulnerability reports
 for issues mentioning C/C++, Java, Go, Perl, PHP or Python. It stores matching
 records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
-vulnerability feed and keeps reports with a CVSS score of at least 5.0 that
-were updated or published within the last 24 hours. Language detection uses
-OSV package ecosystems, package URLs, CVE affected-product data and descriptions.
+vulnerability feed and keeps HIGH or CRITICAL reports (CVSS score of at least
+7.0) that were updated or published within the last 24 hours. Language
+detection uses OSV package ecosystems, package URLs, CVE affected-product data
+and descriptions.
 WordPress plugin advisories are classified as PHP. Numeric CVSS base scores
 are used when present; CVSS 3.0 and 3.1 vectors are scored when the feed
 supplies only a vector. Records without a supported score are skipped.
@@ -13,7 +14,7 @@ supplies only a vector. Records without a supported score are skipped.
 The collector requests recent updates in paginated batches and applies an exact
 24-hour timestamp and CVSS threshold check before saving a report.
 
-Current version: `1.0.6`.
+Current version: `1.0.7`.
 
 ## Requirements
 
