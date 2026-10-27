@@ -353,6 +353,7 @@ sub _ecosystem_language {
     return 'perl'   if $ecosystem =~ /^(?:cpan|perl)$/;
     return 'java'   if $ecosystem =~ /^(?:maven|maven central|java)$/;
     return 'go'     if $ecosystem =~ /^(?:go|golang|go modules?)$/;
+    return 'rust'   if $ecosystem =~ /^(?:crates\.io|cargo|rust)$/;
     return 'php'    if $ecosystem =~ /^(?:packagist|composer|php)$/;
     return undef;
 }
@@ -363,6 +364,7 @@ sub _purl_language {
     return 'perl'   if $purl =~ m{^pkg:cpan/};
     return 'java'   if $purl =~ m{^pkg:maven/};
     return 'go'     if $purl =~ m{^pkg:golang/};
+    return 'rust'   if $purl =~ m{^pkg:cargo/};
     return 'php'    if $purl =~ m{^pkg:composer/};
     return undef;
 }
@@ -451,9 +453,10 @@ CVE::Research - collect and triage recent vulnerability reports
 =head1 DESCRIPTION
 
 Fetches recently updated vulnerability reports from the paginated CIRCL
-vulnerability feed. It identifies C/C++, Java, Go, Perl, PHP and Python from
-OSV ecosystems, package URLs, affected product metadata and descriptions. The
-collector stores only HIGH or CRITICAL reports with a supported CVSS score of
+vulnerability feed. Supported languages are C/C++, Java, Go, Perl, PHP, Python
+and Rust. Detection uses OSV ecosystems, package URLs, affected product
+metadata and descriptions. The collector stores only HIGH or CRITICAL reports
+with a supported CVSS score of
 at least 7.0 that fall within the 24-hour window. Numeric CVSS base scores are
 used when present; CVSS 3.0 and 3.1 vectors are scored when a numeric base
 score is absent. Unsupported vectors and missing scores are skipped. Reports

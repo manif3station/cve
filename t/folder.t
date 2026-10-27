@@ -29,6 +29,7 @@ my %examples = (
     perl   => 'Perl module',
     java   => 'Java library',
     go     => 'Golang project',
+    rust   => 'Rust crate',
     cc     => 'C++ compiler',
 );
 for my $language (sort keys %examples) {
@@ -41,6 +42,8 @@ unlike('Python', $filters->{php}, 'language filters remain distinct');
 my $directories = CVE::Folder->list;
 is_deeply([sort keys %$directories], [sort keys %examples],
     'list returns every supported language');
+is($directories->{cc}, "$home/.cve/c/c++",
+    'stores C and C++ reports in the documented directory');
 for my $language (keys %examples) {
     ok(-d $directories->{$language}, "$language directory is created");
 }

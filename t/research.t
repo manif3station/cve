@@ -137,6 +137,18 @@ is(CVE::Research::_identify_language(
     'dependency issue', $filters,
 ), 'go', 'identifies Go from an affected ecosystem');
 is(CVE::Research::_identify_language(
+    { affected => [{ package => { ecosystem => 'crates.io', name => 'example' } }] },
+    'dependency issue', $filters,
+), 'rust', 'identifies Rust from a crates.io ecosystem');
+is(CVE::Research::_identify_language(
+    { affected => [{ package => { purl => 'pkg:cargo/example' } }] },
+    'dependency issue', $filters,
+), 'rust', 'identifies Rust from a Cargo package URL');
+is(CVE::Research::_identify_language({}, 'Rust crate vulnerability', $filters),
+    'rust', 'identifies Rust from the description');
+is(CVE::Research::_identify_language({}, 'rustc has an out of bounds access', $filters),
+    'rust', 'identifies Rust compiler advisories');
+is(CVE::Research::_identify_language(
     { containers => { cna => { affected => [{ vendor => 'python-pillow', product => 'Pillow' }] } } },
     'image library issue', $filters,
 ), 'python', 'identifies Python from CVE affected vendor metadata');
