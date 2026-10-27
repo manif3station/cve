@@ -1,12 +1,12 @@
 # CVE
 
 CVE is a Developer Dashboard skill that watches recent vulnerability reports
-for critical issues mentioning C/C++, Java, Go, Perl, PHP or Python. It stores
-matching records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
-vulnerability feed and, by default, keeps reports with a CVSS score of at least
-5.0 that were published within the last 24 hours.
+for issues mentioning C/C++, Java, Go, Perl, PHP or Python. It stores matching
+records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
+vulnerability feed and keeps reports with a CVSS score of at least 5.0 that
+were published within the last 24 hours.
 
-Current version: `1.0.2`.
+Current version: `1.0.3`.
 
 ## Requirements
 
@@ -29,7 +29,7 @@ d2 restart collector cve.research
 d2 collector run cve.research
 ```
 
-It is configured to run hourly. To view the stored critical report count,
+It is configured to run hourly. To view the stored report count,
 start the count collector:
 
 ```sh
@@ -44,8 +44,18 @@ directories in `~/.cve/`, including `cc`, `java`, `go`, `perl`, `php` and
 
 ## Configuration
 
-Collector schedules and commands are in `config/config.json`. The critical
-CVSS threshold and 24-hour time window are set in `.env.pl`.
+Collector schedules and commands are in `config/config.json`. The CVSS
+severity threshold and 24-hour time window are set in `.env.pl`.
+
+## Help and tests
+
+The collector commands accept `--help`, `-h` and `/?`. Run the test suite
+through the Developer Dashboard environment so it receives the configured
+severity threshold and time window:
+
+```sh
+d2 env prove -Ilib t
+```
 
 ## Licence
 

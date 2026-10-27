@@ -2,22 +2,25 @@
    "collectors" : [
       {
          "command" : "d2 cve",
-         "cron" : "* */1 * * *",
+         "cron" : "0 * * * *",
          "name" : "research",
          "rotations" : {
-            "lines" : 30
-         }
+            "lines" : 100
+         },
+         "timeout" : 999
       },
       {
          "command" : "d2 cve.count",
-         "cron" : "*/30 * * * *",
+         "cron" : "30 * * * *",
          "indicator" : {
             "icon" : "[% IF count > 0%]Found [% count %] CVE[% ELSE %]No CVE[% END %] "
          },
          "name" : "count",
          "rotations" : {
             "lines" : 30
-         }
+         },
+         "timeout" : 999
       }
    ]
 }
+

@@ -32,3 +32,19 @@ sub list {return {
 }}
 
 1;
+
+=head1 NAME
+
+CVE::Folder - language filters and CVE storage directories
+
+=head1 SYNOPSIS
+
+  use CVE::Folder;
+  my $directories = CVE::Folder->list;
+
+=head1 DESCRIPTION
+
+Defines the supported language filters and creates the corresponding
+directories beneath C<~/.cve/> when requested.
+
+=cut
