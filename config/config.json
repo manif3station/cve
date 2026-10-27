@@ -1,0 +1,23 @@
+{
+   "collectors" : [
+      {
+         "command" : "d2 cve",
+         "cron" : "* */1 * * *",
+         "name" : "research",
+         "rotations" : {
+            "lines" : 30
+         }
+      },
+      {
+         "command" : "d2 cve.count",
+         "cron" : "*/30 * * * *",
+         "indicator" : {
+            "icon" : "[% IF count > 0%]Found [% count %] CVE[% ELSE %]No CVE[% END %] "
+         },
+         "name" : "count",
+         "rotations" : {
+            "lines" : 30
+         }
+      }
+   ]
+}
