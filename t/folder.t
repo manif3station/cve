@@ -34,6 +34,8 @@ my %examples = (
 for my $language (sort keys %examples) {
     like($examples{$language}, $filters->{$language}, "$language filter matches");
 }
+like('WordPress plugin vulnerability', $filters->{php},
+    'recognises WordPress plugin issues as PHP');
 unlike('Python', $filters->{php}, 'language filters remain distinct');
 
 my $directories = CVE::Folder->list;

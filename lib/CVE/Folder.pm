@@ -11,11 +11,11 @@ sub _dir {
 }
 
 sub filters {{
-    'php'   => qr/\bphp\b/i,
+    'php'   => qr/\b(php|wordpress)\b/i,
     'python' => qr/\bpython\b/i,
     'perl'  => qr/\bperl\b/i,
     'java'  => qr/\bjava\b/i,
-    'go'    => qr/\b(golang|go-lang)\b/i,
+    'go'    => qr/\b(golang|go-lang|go (?:v?\d+(?:\.\d+)+|module|package|library|project|application|service))\b/i,
     'cc'    => qr/\b(c\+\+|gcc|clang|\bc\b\s+compiler|\blibc\b)/i,
 }}
 
@@ -45,6 +45,8 @@ CVE::Folder - language filters and CVE storage directories
 =head1 DESCRIPTION
 
 Defines the supported language filters and creates the corresponding
-directories beneath C<~/.cve/> when requested.
+directories beneath C<~/.cve/> when requested. The filters recognise common
+package ecosystems and textual language names; WordPress advisories are
+treated as PHP.
 
 =cut
