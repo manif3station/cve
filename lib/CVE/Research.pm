@@ -450,13 +450,18 @@ CVE::Research - collect and triage recent vulnerability reports
 
 =head1 DESCRIPTION
 
-Fetches recently updated vulnerability reports, identifies supported
-languages from OSV ecosystems, package URLs, affected product metadata and
-descriptions, then checks CVSS severity and update age. CVSS 3.0 and 3.1
-vectors are scored when a numeric base score is absent. Unknown score vectors
-are skipped instead of being treated as a numeric score. Reports are stored
-in the corresponding C<~/.cve/> language directory. The C<run> method accepts
-optional C<fetch>, C<now>, C<threshold>, C<window>, C<out> and C<err> values
-to support deterministic testing.
+Fetches recently updated vulnerability reports from the paginated CIRCL
+vulnerability feed. It identifies C/C++, Java, Go, Perl, PHP and Python from
+OSV ecosystems, package URLs, affected product metadata and descriptions. The
+collector stores only HIGH or CRITICAL reports with a supported CVSS score of
+at least 7.0 that fall within the 24-hour window. Numeric CVSS base scores are
+used when present; CVSS 3.0 and 3.1 vectors are scored when a numeric base
+score is absent. Unsupported vectors and missing scores are skipped. Reports
+are stored in the corresponding C<~/.cve/> language directory. The collector
+requests up to five pages of 100 records per run and warns when the page limit
+is reached. The default threshold and window are set by
+C<CVSS_SEVERITY_THRESHOLD> and C<SECONDS_IN_24H>. The C<run> method accepts
+optional C<fetch>, C<now>, C<threshold>, C<window>, C<max_pages>, C<out> and
+C<err> values to support deterministic testing.
 
 =cut

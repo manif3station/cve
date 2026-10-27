@@ -14,8 +14,8 @@ $SECONDS_IN_24H          = 24 * 60 * 60;
 
 =head1 DESCRIPTION
 
-Sets the default CVSS threshold and maximum age for reports processed by
-the research collector. The Developer Dashboard loads these values into
-the C<d2 env> environment.
+Sets the research collector defaults: a minimum CVSS score of 7.0, which
+includes HIGH and CRITICAL reports, and a maximum report age of 24 hours. The
+Developer Dashboard loads these values into the C<d2 env> environment.
 
 =cut

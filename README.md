@@ -6,15 +6,18 @@ records in `~/.cve/<language>/` for review. The collector reads the public CIRCL
 vulnerability feed and keeps HIGH or CRITICAL reports (CVSS score of at least
 7.0) that were updated or published within the last 24 hours. Language
 detection uses OSV package ecosystems, package URLs, CVE affected-product data
-and descriptions.
-WordPress plugin advisories are classified as PHP. Numeric CVSS base scores
-are used when present; CVSS 3.0 and 3.1 vectors are scored when the feed
-supplies only a vector. Records without a supported score are skipped.
+and descriptions. WordPress plugin advisories are classified as PHP. Numeric
+CVSS base scores are used when present; CVSS 3.0 and 3.1 vectors are scored
+when the feed supplies only a vector. Records without a supported score are
+skipped.
 
-The collector requests recent updates in paginated batches and applies an exact
-24-hour timestamp and CVSS threshold check before saving a report.
+The collector requests recent updates in pages of 100, up to five pages per
+run, then applies the exact 24-hour timestamp and CVSS threshold checks before
+saving a report. It logs a warning if it reaches the page limit. The threshold
+defaults to 7.0 and the time window defaults to 24 hours; both values are
+configured in `.env.pl`.
 
-Current version: `1.0.7`.
+Current version: `1.0.8`.
 
 ## Requirements
 
@@ -52,8 +55,8 @@ directories in `~/.cve/`, including `cc`, `java`, `go`, `perl`, `php` and
 
 ## Configuration
 
-Collector schedules and commands are in `config/config.json`. The CVSS
-severity threshold and 24-hour time window are set in `.env.pl`.
+Collector schedules and commands are in `config/config.json`. The default
+CVSS severity threshold (7.0) and 24-hour time window are set in `.env.pl`.
 
 ## Help and tests
 

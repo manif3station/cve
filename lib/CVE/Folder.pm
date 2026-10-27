@@ -44,9 +44,9 @@ CVE::Folder - language filters and CVE storage directories
 
 =head1 DESCRIPTION
 
-Defines the supported language filters and creates the corresponding
-directories beneath C<~/.cve/> when requested. The filters recognise common
-package ecosystems and textual language names; WordPress advisories are
-treated as PHP.
+Defines the supported textual language filters and creates the corresponding
+directories beneath C<~/.cve/> when requested. C<CVE::Research> also identifies
+languages from package ecosystems, package URLs and affected product metadata.
+WordPress advisories are treated as PHP.
 
 =cut
