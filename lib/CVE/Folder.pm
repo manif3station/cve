@@ -26,7 +26,7 @@ foreach my $lang (@list) {
     eval "sub $lang { _dir base . '/$lang' }";
 }
 
-sub list {{
+sub list {return {
     map { ( $_ => __PACKAGE__->$_ ) } @list
 }}
 
